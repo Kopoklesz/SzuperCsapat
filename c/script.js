@@ -93,3 +93,34 @@ function login() {
             category.add(option);
         }
     }
+    
+    function makePost() {
+        var title = document.getElementById("postTitle").value;
+        var content = document.getElementById("postContent").value;
+        var category = document.getElementById("postCategory").value;
+        var categoryId = getCategoryId(category);
+    
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "lib.php", true); // POST request
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                console.log(xhr.responseText);
+            }
+        }
+        xhr.send("action=makePost&title=" + encodeURIComponent(title) + "&content=" + encodeURIComponent(content) + "&categoryId=" + encodeURIComponent(categoryId)); 
+        document.getElementById("postTitle").value = "";
+        document.getElementById("postContent").value = "";
+    }
+
+    function getCategoryId(categoryValue) {
+        var selectElement = document.getElementById("postCategory");
+        var options = selectElement.options;
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].text === categoryValue) {
+                return i;
+            }
+        }
+        return null;
+    }
+
