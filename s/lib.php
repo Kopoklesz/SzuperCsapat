@@ -8,9 +8,9 @@ function connect(){
     try {
         $pdo = new PDO($dsn, $dbusername, $dbpassword);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        return $pdo; // Visszaadjuk a kapcsolatot
+        return $pdo; // Return the connection
     } catch(PDOException $e) {
-        echo "Connection failed: " .$e->getMessage();
+        return "Connection failed";
     }
 }
 
@@ -22,42 +22,37 @@ function login($username, $password){
         $_SESSION["password"] = $_POST["password"];
         $_SESSION["user_id"] = null;
         try{
-            require_once "dbh.inc.php"; 
-            $query = "SELECT * FROM users 
-                      WHERE username = :username AND password = :password";
+            $pdo = connect(); 
+            $query = "SELECT * FROM users WHERE username = :username";
             $stmt = $pdo->prepare($query);
             $stmt->bindParam(':username', $_SESSION["username"]);
-            $stmt->bindParam(':password', $_SESSION["password"]);
             $stmt->execute();
     
             if ($stmt->rowCount() > 0) {
                 $data = $stmt->fetch();
-                $_SESSION["user_id"] = $data['id'];
-            
-                return "success";
-            } else {
-                return "fail";
+                if($_SESSION["password"] == $data['password']) {
+                    $_SESSION["user_id"] = $data['id'];
+                    return "success";
+                }
             }
-            die();
-            
+            return "fail";
         } catch (PDOException $e) {
-            die("Query failed: " . $e->getMessage());
+            return "Query failed";
         } 
-    
     }else{
-        header("/index.html");
+        exit();
     }
 }
 
 //register
-function register($param1, $param2, $param3){
+function register(){
     if($_SERVER["REQUEST_METHOD"] == "POST"){
         $username = $_POST["username"];
-        $password = $_POST["password"];
+        $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
         $name = $_POST["name"];
     
         try{
-            require_once "dbh.inc.php"; 
+            $pdo = connect(); 
     
             $query = "INSERT INTO users (username, name, password)
             VALUES(?, ?, ?); ";
@@ -67,15 +62,11 @@ function register($param1, $param2, $param3){
             $stmt->execute([$username, $name, $password]);
     
             return "success";
-            die();
-            
         } catch (PDOException $e) {
-            die("Query failed: " . $e->getMessage());
-            return "fail";
+            return "Query failed";
         } 
-    
     }else{
-        header("/index.html");
+        exit();
     }    
 }
 
@@ -101,6 +92,63 @@ if(isset($_POST['action']) && $_POST['action'] === 'login') {
         echo $result;
     } else {
         echo "Missing name or username or password";
+    }
+}
+
+$action = $_POST['action'];
+
+if ($action === "categoryName") {
+    echo categoryName();
+}
+
+function categoryName() {
+    try {
+        $pdo = connect(); 
+        $query = "SELECT name FROM topic_types";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+
+        if ($stmt->rowCount() > 0) {
+            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return json_encode($data);
+        }
+        return json_encode([]);
+    } catch (PDOException $e) {
+        return json_encode(["error" => "Query Failed"]);
+    } 
+}
+
+function makePost(){
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+        try{
+            session_start();
+        $title = $_POST["title"];
+        $creator_id = $_SESSION["user_id"];
+        $type_id = 1;
+        $description = $_POST["content"];
+
+        require_once "dbh.inc.php"; 
+
+                $query = "INSERT INTO topics (Creator_id,Title, description)
+                VALUES(?, ?, ?); ";
+
+
+
+                $stmt = $pdo->prepare($query);
+
+                $stmt->execute([$creator_id, $title, $description]);
+
+                require_once "mainpage.php";
+                die();
+
+            } catch (PDOException $e) {
+                die("Query failed: " . $e->getMessage());
+            } 
+
+    }else{
+            header("Location: /signin.php"); // Redirect to the login page if user is not logged in
+        exit();
     }
 }
 
