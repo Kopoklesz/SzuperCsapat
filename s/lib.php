@@ -1,4 +1,5 @@
 <?php
+session_start();
 //connect
 function connect(){
     $dsn = "mysql:host=localhost;dbname=Blog";
@@ -95,12 +96,6 @@ if(isset($_POST['action']) && $_POST['action'] === 'login') {
     }
 }
 
-$action = $_POST['action'];
-
-if ($action === "categoryName") {
-    echo categoryName();
-}
-
 function categoryName() {
     try {
         $pdo = connect(); 
@@ -118,36 +113,38 @@ function categoryName() {
     } 
 }
 
-function makePost(){
+if(isset($_POST['action'])) {
+    $action = $_POST['action'];
+    if ($action === "categoryName") {
+        echo categoryName();
+    }
+    if ($action === "makePost") {
+        echo makePost($_POST["title"], $_POST["content"], $_POST["categoryId"]);
+    }
+}
+
+function makePost($title, $content, $categoryId){
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
-
         try{
-            session_start();
-        $title = $_POST["title"];
-        $creator_id = $_SESSION["user_id"];
-        $type_id = 1;
-        $description = $_POST["content"];
+            $creator_id = $_SESSION["user_id"];
 
-        require_once "dbh.inc.php"; 
+            $pdo = connect(); 
 
-                $query = "INSERT INTO topics (Creator_id,Title, description)
-                VALUES(?, ?, ?); ";
+            $query = "INSERT INTO topics (Creator_id, Title, type_id, description)
+            VALUES(?, ?, ?, ?); ";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute([$creator_id, $title, $categoryId, $content]);
 
+            header("Location: mainpage.html");
+            exit();
 
+        } catch (PDOException $e) {
+            error_log("Query failed: " . $e->getMessage());
+            die("An error occurred. Please try again later.");
+        }
 
-                $stmt = $pdo->prepare($query);
-
-                $stmt->execute([$creator_id, $title, $description]);
-
-                require_once "mainpage.php";
-                die();
-
-            } catch (PDOException $e) {
-                die("Query failed: " . $e->getMessage());
-            } 
-
-    }else{
-            header("Location: /signin.php"); // Redirect to the login page if user is not logged in
+    } else {
+        header("Location: /signin.php");
         exit();
     }
 }
