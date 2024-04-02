@@ -5,3 +5,20 @@ background-image: linear-gradient(to right top, #282ea1, #45258c, #511e78, #5619
 .hidden{
     display: none;
 }
+
+#toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    transition: opacity 0.5s ease;
+  }
+  
+  .hide {
+    opacity: 0;
+    pointer-events: none;
+  }
