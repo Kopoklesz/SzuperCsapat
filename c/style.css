@@ -1,0 +1,7 @@
+.gradient-custom {
+background-image: linear-gradient(to right top, #282ea1, #45258c, #511e78, #561966, #551755);
+}
+
+.hidden{
+    display: none;
+}
