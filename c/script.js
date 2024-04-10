@@ -258,6 +258,7 @@ let comments = [
     }
 ]
 
+
 async function loadComment() {
 
     let commentList = document.getElementById("commentList");
@@ -387,6 +388,70 @@ function loadData() {
     console.log("Page is fully loaded");
 }
 
+//Favourite Topics/Posts
+
+let favouriteTopics = [1, 5];
+
+
+function listFavouritePosts() {
+    let topics = document.getElementById("topics");
+
+    var isRow = 0;
+
+    let rowDiv = document.createElement("div");
+    rowDiv.setAttribute("class", "row");
+
+    for (var data of topicData) {
+        for (var fav of favouriteTopics) {
+            if (fav == data.id) {
+
+                let div = document.createElement("div");
+                div.setAttribute("class", "col-md-6");
+
+                let div2 = document.createElement("div");
+                div2.setAttribute("class", "card mb-4 topic-card");
+                div2.setAttribute("onclick", "launchViewPost(" + data.id + ")");
+
+                let div3 = document.createElement("div");
+                div3.setAttribute("class", "card-body");
+
+                let h3 = document.createElement("h3");
+                h3.setAttribute("class", "card-title");
+                h3.innerHTML = data.name;
+
+                let p = document.createElement("p");
+                p.setAttribute("class", "card-text");
+                p.innerHTML = data.description;
+
+                div.appendChild(div2);
+                div2.appendChild(div3);
+                div3.appendChild(h3);
+                div3.appendChild(p);
+
+                topics.appendChild(div);
+
+                isRow++;
+
+                if (isRow % 2 == 0) {
+                    let rowDiv = document.createElement("div");
+                    rowDiv.setAttribute("class", "row");
+                }
+
+                rowDiv.appendChild(div);
+                topics.append(rowDiv);
+            }
+        }
+    }
+}
+
+
+function loadFavouriteData() {
+    listFavouritePosts();
+
+    console.log("Page is fully loaded");
+}
+
+
 
 if (document.getElementById("view_a_post") != null) {
     window.onload = loadData();
@@ -398,5 +463,7 @@ if (document.getElementById("main_page_welcome") != null) {
 }
 
 
-
+if (document.getElementById("favourite_welcome") != null) {
+    window.onload = loadFavouriteData();
+}
 
