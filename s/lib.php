@@ -1,8 +1,9 @@
 <?php
-session_start();
+
 //connect
 function connect(){
-    $dsn = "mysql:host=localhost;dbname=Blog";
+    session_start();
+    $dsn = "mysql:host=localhost;dbname=blog";
     $dbusername = "root";
     $dbpassword = "";
 
@@ -18,17 +19,17 @@ function connect(){
 //Login
 function login($username, $password){
     if($_SERVER["REQUEST_METHOD"] == "POST"){
-        session_start();
+        $pdo = connect(); 
         $_SESSION["username"] = $_POST["username"];
         $_SESSION["password"] = $_POST["password"];
         $_SESSION["user_id"] = null;
         try{
-            $pdo = connect(); 
+            
             $query = "SELECT * FROM users WHERE username = :username";
             $stmt = $pdo->prepare($query);
             $stmt->bindParam(':username', $_SESSION["username"]);
             $stmt->execute();
-    
+            
             if ($stmt->rowCount() > 0) {
                 $data = $stmt->fetch();
                 if($_SESSION["password"] == $data['password']) {
@@ -49,7 +50,7 @@ function login($username, $password){
 function register(){
     if($_SERVER["REQUEST_METHOD"] == "POST"){
         $username = $_POST["username"];
-        $password = password_hash($_POST["password"], PASSWORD_DEFAULT);
+        $password =$_POST["password"];
         $name = $_POST["name"];
     
         try{
@@ -121,15 +122,20 @@ if(isset($_POST['action'])) {
     if ($action === "makePost") {
         echo makePost($_POST["title"], $_POST["content"], $_POST["categoryId"]);
     }
+    if($action === "postView") {
+        echo postView();
+    }
+    if($action == "getPost") {
+        echo getPost($_POST["postId"]);
+    }
 }
 
 function makePost($title, $content, $categoryId){
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try{
-            $creator_id = $_SESSION["user_id"];
-
             $pdo = connect(); 
-
+            $creator_id = $_SESSION["user_id"];
+           
             $query = "INSERT INTO topics (Creator_id, Title, type_id, description)
             VALUES(?, ?, ?, ?); ";
             $stmt = $pdo->prepare($query);
@@ -146,6 +152,53 @@ function makePost($title, $content, $categoryId){
     } else {
         header("Location: /signin.php");
         exit();
+    }
+}
+
+function postView(){
+    try {
+        $pdo = connect();
+        $sql = "SELECT Title, description FROM topics";
+        $result = $pdo->query($sql);
+
+        $data = array();
+
+        if ($result->rowCount() > 0) {
+            while($row = $result->fetch(PDO::FETCH_ASSOC)) {
+                $data[] = $row;
+            }
+            header('Content-Type: application/json'); 
+            echo json_encode($data); 
+        } else {
+            header('Content-Type: application/json'); 
+            echo json_encode([]); 
+        }
+    } catch (PDOException $e) {
+        header('Content-Type: application/json'); 
+        echo json_encode(["error" => "Query Failed"]); 
+    }
+}
+
+function getPost($postId){
+    try {
+        $pdo = connect();
+        $sql = "SELECT Title, description FROM topics WHERE id = :postId";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':postId', $postId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($data) {
+            header('Content-Type: application/json');
+            echo json_encode($data);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(["error" => "Post not found"]);
+        }
+    } catch (PDOException $e) {
+        header('Content-Type: application/json');
+        echo json_encode(["error" => "Query Failed"]);
     }
 }
 
