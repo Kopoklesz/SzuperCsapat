@@ -105,12 +105,12 @@ function makePost() {
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
-            console.log(xhr.responseText);
+            document.getElementById("postTitle").value = "";
+            document.getElementById("postContent").value = "";
+            console.log("Post created successfully");
         }
     }
     xhr.send("action=makePost&title=" + encodeURIComponent(title) + "&content=" + encodeURIComponent(content) + "&categoryId=" + encodeURIComponent(categoryId));
-    document.getElementById("postTitle").value = "";
-    document.getElementById("postContent").value = "";
 }
 
 function getCategoryId(categoryValue) {
@@ -124,89 +124,43 @@ function getCategoryId(categoryValue) {
     return null;
 }
 
-
-
-//Post loading and click handling
-
-let topicData = [
-    {
-        "id": 1,
-        "name": "Lorem ipsum",
-        "type_id": 1,
-        "description": "Ut congue libero at neque rhoncus, at commodo purus facilisis."
-    },
-    {
-        "id": 2,
-        "name": "In quis consequat",
-        "type_id": 2,
-        "description": "Fusce a eros sollicitudin, rutrum sapien at, luctus nisl. Vivamus et justo tempor, faucibus ipsum ut, laoreet libero.massa sit amet molestie hendrerit"
-    },
-    {
-        "id": 3,
-        "name": "Suspendisse venenatis",
-        "type_id": 1,
-        "description": "Aenean sed nisi vitae erat vulputate interdum. In quis consequat augue. Praesent efficitur sagittis eros in pretium. Phasellus non pretium arcu."
-    },
-    {
-        "id": 4,
-        "name": "Donec maximus",
-        "type_id": 2,
-        "description": "Aliquam vel massa eu nibh volutpat pharetra vitae non arcu. Phasellus vehicula ex in nunc luctus pulvinar. In ac nulla quis purus varius aliquam in id mauris. Duis sagittis metus ut consectetur pulvinar. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Sed dictum fringilla sapien eu rutrum."
-    },
-    {
-        "id": 5,
-        "name": "Volutpat pharetra",
-        "type_id": 1,
-        "description": "Donec auctor lacus quis elit iaculis ornare. Duis luctus nunc libero, sit amet aliquet lectus auctor vel. Fusce pretium ante nunc, at lacinia dui aliquam eu. Duis at dolor vitae erat ultrices pulvinar. "
-    }
-]
-
 function listPosts() {
-    let topics = document.getElementById("topics");
+    $(document).ready(function () {
+        $.ajax({
+            url: 'lib.php',
+            type: 'POST', // Change type to POST
+            dataType: 'json',
+            data: { action: 'postView' }, // Add data parameter to specify action
+            success: function (data) {
+                var topicsSection = document.getElementById("topics");
 
-    var isRow = 0;
+                data.forEach(function (item) {
+                    var card = document.createElement("div");
+                    card.className = "card mb-4 topic-card";
+                    card.onclick = function () { launchViewPost(getPostId()) };
 
-    let rowDiv = document.createElement("div");
-    rowDiv.setAttribute("class", "row");
+                    var cardBody = document.createElement("div");
+                    cardBody.className = "card-body";
 
-    for (var data of topicData) {
+                    var title = document.createElement("h3");
+                    title.className = "card-title";
+                    title.textContent = item.Title;
 
-        let div = document.createElement("div");
-        div.setAttribute("class", "col-md-6");
+                    var content = document.createElement("p");
+                    content.className = "card-text";
+                    content.textContent = item.description;
 
-        let div2 = document.createElement("div");
-        div2.setAttribute("class", "card mb-4 topic-card");
-        div2.setAttribute("onclick", "launchViewPost(" + data.id + ")");
-
-        let div3 = document.createElement("div");
-        div3.setAttribute("class", "card-body");
-
-        let h3 = document.createElement("h3");
-        h3.setAttribute("class", "card-title");
-        h3.innerHTML = data.name;
-
-        let p = document.createElement("p");
-        p.setAttribute("class", "card-text");
-        p.innerHTML = data.description;
-
-        div.appendChild(div2);
-        div2.appendChild(div3);
-        div3.appendChild(h3);
-        div3.appendChild(p);
-
-        topics.appendChild(div);
-
-        isRow++;
-
-        if (isRow % 2 == 0) {
-            let rowDiv = document.createElement("div");
-            rowDiv.setAttribute("class", "row");
-        }
-
-        rowDiv.appendChild(div);
-        topics.append(rowDiv);
-
-    }
+                    cardBody.appendChild(title);
+                    cardBody.appendChild(content);
+                    card.appendChild(cardBody);
+                    topicsSection.appendChild(card);
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    });
 }
 
 function launchViewPost(postId) {
@@ -215,9 +169,6 @@ function launchViewPost(postId) {
     location.href = "view_post.html?postId=" + postId;
 
 }
-
-
-
 //View post and comment handling
 
 let comments = [
@@ -257,7 +208,6 @@ let comments = [
         "timestamp": "2024-04-05"
     }
 ]
-
 
 async function loadComment() {
 
@@ -307,30 +257,14 @@ async function loadComment() {
 
 }
 
-
 function getPostId() {
-    var incoming = window.location.href;
-
-    console.log("Incoming: " + incoming)
-
-    var split1 = incoming.split("?");
-
-    console.log("Split 1: " + split1[1])
-
-
-    var split2 = split1[1].split("=");
-
-    console.log("Split 2: " + split2[split2.length - 1])
-
-    var postId = split2[split2.length - 1];
-
-    console.log("Post id: " + postId);
-
+    var urlParams = new URLSearchParams(window.location.search);
+    var postId = urlParams.get('postId');
     return postId;
 }
 
 
-function loadPost() {
+function loadPost(topicData) {
     var postId = getPostId();
 
     var f = 0;
@@ -350,7 +284,6 @@ function loadPost() {
     if (f == 0) {
         console.log("No topic found with given id.")
     }
-
 }
 
 
@@ -382,7 +315,7 @@ function comment() {
 
 
 function loadData() {
-    loadPost();
+    //loadPost();
     loadComment();
 
     console.log("Page is fully loaded");
@@ -392,7 +325,7 @@ function loadData() {
 
 let favouriteTopics = [1, 5];
 
-
+/*
 function listFavouritePosts() {
     let topics = document.getElementById("topics");
 
@@ -443,7 +376,7 @@ function listFavouritePosts() {
         }
     }
 }
-
+*/
 
 function loadFavouriteData() {
     listFavouritePosts();
@@ -451,19 +384,14 @@ function loadFavouriteData() {
     console.log("Page is fully loaded");
 }
 
-
-
 if (document.getElementById("view_a_post") != null) {
     window.onload = loadData();
 }
-
 
 if (document.getElementById("main_page_welcome") != null) {
     window.onload = listPosts();
 }
 
-
 if (document.getElementById("favourite_welcome") != null) {
     window.onload = loadFavouriteData();
 }
-
