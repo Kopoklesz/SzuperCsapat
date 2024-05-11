@@ -128,16 +128,16 @@ function listPosts() {
     $(document).ready(function () {
         $.ajax({
             url: 'lib.php',
-            type: 'POST', // Change type to POST
+            type: 'POST',
             dataType: 'json',
-            data: { action: 'postView' }, // Add data parameter to specify action
+            data: { action: 'postView' },
             success: function (data) {
                 var topicsSection = document.getElementById("topics");
 
                 data.forEach(function (item) {
                     var card = document.createElement("div");
                     card.className = "card mb-4 topic-card";
-                    card.onclick = function () { launchViewPost(getPostId()) };
+                    card.onclick = function () { launchViewPost(item.id) };
 
                     var cardBody = document.createElement("div");
                     cardBody.className = "card-body";
@@ -165,49 +165,9 @@ function listPosts() {
 
 function launchViewPost(postId) {
     console.log("It works!")
-
     location.href = "view_post.html?postId=" + postId;
-
 }
-//View post and comment handling
-
-let comments = [
-    {
-        "id": 1,
-        "user_id": 2,
-        "topic_id": 1,
-        "body": "Lorem ipsum",
-        "timestamp": "2024-04-01"
-    },
-    {
-        "id": 2,
-        "user_id": 1,
-        "topic_id": 1,
-        "body": "Pellentesque consectetur, massa sit amet molestie hendrerit",
-        "timestamp": "2024-04-01"
-    },
-    {
-        "id": 3,
-        "user_id": 2,
-        "topic_id": 1,
-        "body": "Consectetur adipiscing elit",
-        "timestamp": "2024-04-02"
-    },
-    {
-        "id": 4,
-        "user_id": 3,
-        "topic_id": 1,
-        "body": "Suspendisse mi risus",
-        "timestamp": "2024-04-05"
-    },
-    {
-        "id": 5,
-        "user_id": 3,
-        "topic_id": 1,
-        "body": "consectetur adipiscing",
-        "timestamp": "2024-04-05"
-    }
-]
+//View post and comment 
 
 async function loadComment() {
 
@@ -257,6 +217,7 @@ async function loadComment() {
 
 }
 
+
 function getPostId() {
     var urlParams = new URLSearchParams(window.location.search);
     var postId = urlParams.get('postId');
@@ -264,31 +225,49 @@ function getPostId() {
 }
 
 
-function loadPost(topicData) {
+function loadPost() {
     var postId = getPostId();
 
-    var f = 0;
+    var url = 'lib.php';
 
-    for (var data of topicData) {
-        if (data.id == postId) {
-            let postTitle = document.getElementById("postTitle");
-            postTitle.innerHTML = data.name;
-
-            let postText = document.getElementById("postText");
-            postText.innerHTML = data.description;
-
-            f = 1;
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: 'action=getPost&postId=' + postId
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
-    }
+        return response.text();
+    })
+    .then(text => {
+        try {
+            var data = JSON.parse(text);
 
-    if (f == 0) {
-        console.log("No topic found with given id.")
-    }
+            if (data && data.Title && data.description) {
+                let postTitle = document.getElementById("postTitle");
+                postTitle.innerHTML = data.Title;
+
+                let postText = document.getElementById("postText");
+                postText.innerHTML = data.description;
+            } else {
+                console.log("No topic found with given id.")
+            }
+        } catch (error) {
+            console.error('Could not parse the following text as JSON:', text);
+            console.error('Error:', error);
+        }
+    })
+    .catch((error) => {
+        console.error('Error:', error);
+    });
 }
 
-
 function comment() {
-    let commentBody = document.getElementById("commentInput").value;
+    var commentBody = document.getElementById("commentInput").value;
 
     var currentdate = new Date();
     var datetime = currentdate.getFullYear() + "-"
@@ -300,23 +279,22 @@ function comment() {
 
     var postId = getPostId();
 
-    comments.push({
-        "id": 6,
-        "user_id": 3,
-        "topic_id": postId,
-        "body": commentBody,
-        "timestamp": datetime
-    });
-
-    loadComment();
-
-    console.log(comments);
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "lib.php", true); // POST request
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            document.getElementById("commentInput").value = "";
+            console.log("Comment created successfully");
+        }
+    }
+    xhr.send("action=makeComment&body=" + encodeURIComponent(commentBody) + "&timestamp=" + encodeURIComponent(datetime) + "&postId=" + encodeURIComponent(postId));
 }
 
 
 function loadData() {
-    //loadPost();
-    loadComment();
+    loadPost();
+    //loadComment();
 
     console.log("Page is fully loaded");
 }
@@ -325,8 +303,8 @@ function loadData() {
 
 let favouriteTopics = [1, 5];
 
-/*
-function listFavouritePosts() {
+
+/*function listFavouritePosts() {
     let topics = document.getElementById("topics");
 
     var isRow = 0;
@@ -375,8 +353,8 @@ function listFavouritePosts() {
             }
         }
     }
-}
-*/
+}*/
+
 
 function loadFavouriteData() {
     listFavouritePosts();
