@@ -122,6 +122,9 @@ if(isset($_POST['action'])) {
     if ($action === "makePost") {
         echo makePost($_POST["title"], $_POST["content"], $_POST["categoryId"]);
     }
+    if ($action === "makeComment") {
+        echo makeComment($_POST["body"], $_POST["timestamp"], $_POST["postId"]);
+    }
     if($action === "postView") {
         echo postView();
     }
@@ -155,10 +158,35 @@ function makePost($title, $content, $categoryId){
     }
 }
 
+function makeComment($body, $timestamp, $postId){
+    if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        try{
+            $pdo = connect(); 
+            $creator_id = $_SESSION["user_id"];
+           
+            $query = "INSERT INTO comments (Creator_id, topic_id, body, timestamp)
+            VALUES(?, ?, ?, ?); ";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute([$creator_id, $postId, $body, $timestamp]);
+
+            header("Location: view_post.html");
+            exit();
+
+        } catch (PDOException $e) {
+            error_log("Query failed: " . $e->getMessage());
+            die("An error occurred. Please try again later.");
+        }
+
+    } else {
+        header("Location: /signin.php");
+        exit();
+    }
+}
+
 function postView(){
     try {
         $pdo = connect();
-        $sql = "SELECT Title, description FROM topics";
+        $sql = "SELECT id, Title, description FROM topics";
         $result = $pdo->query($sql);
 
         $data = array();
@@ -201,5 +229,4 @@ function getPost($postId){
         echo json_encode(["error" => "Query Failed"]);
     }
 }
-
 ?>
