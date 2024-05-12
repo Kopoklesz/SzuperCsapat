@@ -199,7 +199,22 @@ function loadComment() {
 
                         let h6 = document.createElement("h6");
                         h6.setAttribute("class", "fw-bold mb-1");
-                        h6.innerHTML = item.user_id;  // Changed from comment.user_id to item.user_id
+
+
+                        $(document).ready(function () {
+                            $.ajax({
+                                url: 'lib.php',
+                                type: 'POST',
+                                dataType: 'json',
+                                data: { action: 'getCommentedUser', userId: item.user_id },
+                                success: function (data2) {
+                                    h6.innerHTML = data2.username;                                
+                                }, error: function (xhr, status, error) {
+                                    console.error('Error:', error);
+                                }
+                            });
+                        });
+                       
 
                         let div4 = document.createElement("div");
                         div4.setAttribute("class", "d-flex align-items-center mb-3");
@@ -225,14 +240,14 @@ function loadComment() {
                         commentList.appendChild(hr);
                         commentList.appendChild(div);
                     });
-                }else{
+                } else {
                     console.log("No comment found with given id.")
                 }
-            },error: function (xhr, status, error) {
+            }, error: function (xhr, status, error) {
                 console.error('Error:', error);
             }
         });
-    });  
+    });
 }
 
 
@@ -255,33 +270,33 @@ function loadPost() {
         },
         body: 'action=getPost&postId=' + postId
     })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.text();
-    })
-    .then(text => {
-        try {
-            var data = JSON.parse(text);
-
-            if (data && data.Title && data.description) {
-                let postTitle = document.getElementById("postTitle");
-                postTitle.innerHTML = data.Title;
-
-                let postText = document.getElementById("postText");
-                postText.innerHTML = data.description;
-            } else {
-                console.log("No topic found with given id.")
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
-        } catch (error) {
-            console.error('Could not parse the following text as JSON:', text);
+            return response.text();
+        })
+        .then(text => {
+            try {
+                var data = JSON.parse(text);
+
+                if (data && data.Title && data.description) {
+                    let postTitle = document.getElementById("postTitle");
+                    postTitle.innerHTML = data.Title;
+
+                    let postText = document.getElementById("postText");
+                    postText.innerHTML = data.description;
+                } else {
+                    console.log("No topic found with given id.")
+                }
+            } catch (error) {
+                console.error('Could not parse the following text as JSON:', text);
+                console.error('Error:', error);
+            }
+        })
+        .catch((error) => {
             console.error('Error:', error);
-        }
-    })
-    .catch((error) => {
-        console.error('Error:', error);
-    });
+        });
 }
 
 function comment() {
@@ -296,7 +311,7 @@ function comment() {
         + currentdate.getSeconds();
 
     var postId = getPostId();
-    
+
 
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "lib.php", true); // POST request
@@ -375,10 +390,52 @@ let favouriteTopics = [1, 5];
     }
 }*/
 
+function listFav() {
+   
+    $(document).ready(function () {
+        $.ajax({
+            url: 'lib.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { action: 'listFav' },
+            success: function (data) {
+               
+                data.forEach(function (item) {
+                    
+                    var card = document.createElement("div");
+                    card.className = "card mb-4 topic-card";
+                    card.onclick = function () { launchViewPost(item.id) };
+
+                    var cardBody = document.createElement("div");
+                    cardBody.className = "card-body";
+
+                    var title = document.createElement("h3");
+                    title.className = "card-title";
+                    title.textContent = item.Title;
+
+                    var content = document.createElement("p");
+                    content.className = "card-text";
+                    content.textContent = item.description;
+                    content.textContent = item.description.substring(0, 50) + (item.description.length > 50 ? '...' : '');
+
+                    cardBody.appendChild(title);
+                    cardBody.appendChild(content);
+                    card.appendChild(cardBody);
+                    document.getElementById("topics").appendChild(card);
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    });
+}
+
+
 
 function loadFavouriteData() {
-    listFavouritePosts();
-
+   // listFavouritePosts();
+    listFav();
     console.log("Page is fully loaded");
 }
 
