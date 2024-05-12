@@ -104,11 +104,10 @@ function categoryName() {
         $stmt = $pdo->prepare($query);
         $stmt->execute();
 
-        if ($stmt->rowCount() > 0) {
-            $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            return json_encode($data);
-        }
-        return json_encode([]);
+        
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return json_encode($data);
+     
     } catch (PDOException $e) {
         return json_encode(["error" => "Query Failed"]);
     } 
@@ -140,6 +139,9 @@ if(isset($_POST['action'])) {
     if($action === "listFav") {
         echo lisFav();
     }
+    if($action === "getTopicId"){
+        echo getTopicId($_POST["topicName"]);
+    }
 
 }
 
@@ -153,7 +155,7 @@ function makePost($title, $content, $categoryId){
             $query = "INSERT INTO topics (Creator_id, Title, type_id, description)
             VALUES(?, ?, ?, ?); ";
             $stmt = $pdo->prepare($query);
-            $stmt->execute([$creator_id, $title, $categoryId, $content]);
+            $stmt->execute([$creator_id, $title, ($categoryId+1), $content]);
 
             header("Location: mainpage.html");
             exit();
@@ -198,7 +200,7 @@ function makeComment($body, $timestamp, $postId){
 function postView(){
     try {
         $pdo = connect();
-        $sql = "SELECT id, Title, description FROM topics";
+        $sql = "SELECT id, Title,type_id, description FROM topics";
         $result = $pdo->query($sql);
 
         $data = array();
@@ -328,5 +330,32 @@ function lisFav() {
     }
 }
 
+
+function getTopicId($topicName){
+    try {
+        $pdo = connect();
+        $sql = "SELECT id FROM topic_types WHERE name = :topicName";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':topicName', $topicName, PDO::PARAM_STR);
+        $stmt->execute();
+
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+       
+
+         header('Content-Type: application/json');
+        if ($data) {
+            $responseData = array("topic_type" => $data['id']);
+           
+            echo json_encode($responseData);
+        } else {
+          
+            echo json_encode(["error" => "Topic not found"]);
+        }
+    } catch (PDOException $e) {
+       
+        echo json_encode(["error" => "Query Failed"]);
+    }
+}
 
 ?>
