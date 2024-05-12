@@ -76,13 +76,22 @@ function categories(page) {
                 if (page == "mainpage") {
                     makeCategories(response);
                 } else if (page == "create_post") {
-                    makeCategories(response);
+                    makeCategoriesCP(response);
                 }
             } catch (e) {
                 console.error("Parsing error:", e);
             }
         }
     };
+}
+
+function makeCategoriesCP(response) {
+    var category = document.getElementById("postCategoryCP");
+    for (var i = 0; i < response.length; i++) {
+        var option = document.createElement("option");
+        option.text = response[i].name;
+        category.add(option);
+    }
 }
 
 function makeCategories(response) {
@@ -97,7 +106,7 @@ function makeCategories(response) {
 function makePost() {
     var title = document.getElementById("postTitle").value;
     var content = document.getElementById("postContent").value;
-    var category = document.getElementById("postCategory").value;
+    var category = document.getElementById("postCategoryCP").value;
     var categoryId = getCategoryId(category);
 
     var xhr = new XMLHttpRequest();
@@ -114,7 +123,7 @@ function makePost() {
 }
 
 function getCategoryId(categoryValue) {
-    var selectElement = document.getElementById("postCategory");
+    var selectElement = document.getElementById("postCategoryCP");
     var options = selectElement.options;
     for (var i = 0; i < options.length; i++) {
         if (options[i].text === categoryValue) {
@@ -431,7 +440,88 @@ function listFav() {
     });
 }
 
+function filterByTopicType(topicName) {
+    var filterId = 0;
 
+    /* $(document).ready(function () {
+         $.ajax({
+             url: 'lib.php',
+             type: 'POST',
+             dataType: 'json',
+             data: { action: 'getTopicId', topicName: topicName},
+             success: function (data) {
+                 filterId = data.topic_type;
+             },
+             error: function (xhr, status, error) {
+                 console.error('Error:', error);
+                 console.log(filterId);
+             }
+         });
+     });*/
+
+    $.ajax({
+        url: 'lib.php',
+        type: 'POST',
+        dataType: 'json',
+        data: { action: 'getTopicId', topicName: topicName },
+        success: function (data) {
+            if (data.hasOwnProperty('topic_type')) {
+                filterId = data.topic_type;
+                // Now proceed with the rest of your logic
+            } else {
+                console.error('Error: Unexpected response format');
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error:', error);
+        }
+    });
+
+    $(document).ready(function () {
+        $.ajax({
+            url: 'lib.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { action: 'postView' },
+            success: function (data) {
+                var topicsSection = document.getElementById("topics");
+                while (topicsSection.firstChild) {
+                    topicsSection.removeChild(topicsSection.firstChild);
+                }
+
+                data.forEach(function (item) {
+                    console.log("filterid:     "+filterId);
+                    console.log("item id:   "+item.type_id);
+                    if (filterId == item.type_id) {
+                        var card = document.createElement("div");
+                        card.className = "card mb-4 topic-card";
+                        card.onclick = function () { launchViewPost(item.id) };
+
+                        var cardBody = document.createElement("div");
+                        cardBody.className = "card-body";
+
+                        var title = document.createElement("h3");
+                        title.className = "card-title";
+                        title.textContent = item.Title;
+
+                        var content = document.createElement("p");
+                        content.className = "card-text";
+                        content.textContent = item.description;
+                        content.textContent = item.description.substring(0, 50) + (item.description.length > 50 ? '...' : '');
+
+                        cardBody.appendChild(title);
+                        cardBody.appendChild(content);
+                        card.appendChild(cardBody);
+                        topicsSection.appendChild(card);
+                    }
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    });
+}
 
 function loadFavouriteData() {
    // listFavouritePosts();
@@ -450,3 +540,10 @@ if (document.getElementById("main_page_welcome") != null) {
 if (document.getElementById("favourite_welcome") != null) {
     window.onload = loadFavouriteData();
 }
+
+
+document.getElementById('postCategory').addEventListener('change', function (e) {
+    console.log(e.target.options[e.target.selectedIndex].innerHTML);
+
+    filterByTopicType(e.target.options[e.target.selectedIndex].innerHTML);
+});
