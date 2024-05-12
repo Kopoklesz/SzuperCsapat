@@ -125,6 +125,9 @@ if(isset($_POST['action'])) {
     if ($action === "makeComment") {
         echo makeComment($_POST["body"], $_POST["timestamp"], $_POST["postId"]);
     }
+    if ($action === "getComment") {
+        echo getComment($_POST["postId"]);
+    }
     if($action === "postView") {
         echo postView();
     }
@@ -230,5 +233,30 @@ function getPost($postId){
         header('Content-Type: application/json');
         echo json_encode(["error" => "Query Failed"]);
     }
+}
+
+function getComment($postId){
+
+    try {
+        $pdo = connect();
+        $sql = "SELECT user_id, body, timestamp FROM comments WHERE topic_id = :postId"; 
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':postId', $postId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC); 
+
+        if ($data) {
+            header('Content-Type: application/json');
+            echo json_encode($data);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(["error" => "Post not found"]);
+        }
+    } catch (PDOException $e) {
+        header('Content-Type: application/json');
+        echo json_encode(["error" => "Query Failed"]);
+    }
+
 }
 ?>
