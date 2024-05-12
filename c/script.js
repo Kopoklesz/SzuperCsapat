@@ -499,8 +499,7 @@ function filterByTopicType(topicName) {
                
 
                 data.forEach(function (item) {
-                    console.log("filterid:     "+filterId);
-                    console.log("item id:   "+item.type_id);
+                   
                     if (filterId == item.type_id) {
                         var card = document.createElement("div");
                         card.className = "card mb-4 topic-card";
@@ -534,43 +533,113 @@ function filterByTopicType(topicName) {
 }
 
 function changeFav() {
-  
 
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "lib.php", true); // POST request
-    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-           
-            console.log("fav created successfully");
+    if (document.getElementById("flexCheckDefault").checked == true) {
+        console.log("Most rakja bele")
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "lib.php", true); // POST request
+        xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+
+               
+            }
         }
+        var currentdate = new Date();
+        var datetime = currentdate.getFullYear() + "-"
+            + (currentdate.getMonth() + 1) + "-"
+            + currentdate.getDate() + " "
+            + currentdate.getHours() + ":"
+            + currentdate.getMinutes() + ":"
+            + currentdate.getSeconds();
+
+
+        xhr.send("action=saveFav&postId=" + encodeURIComponent(getPostId()) + "&date=" + encodeURIComponent(datetime));
+    } else {
+        console.log("Most veszi ki")
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "lib.php", true); // POST request
+            xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+
+                    console.log("fav created successfully");
+                }
+            }
+          
+            xhr.send("action=deleteFav&postId=" + encodeURIComponent(getPostId()));
+
     }
-    var currentdate = new Date();
-    var datetime = currentdate.getFullYear() + "-"
-        + (currentdate.getMonth() + 1) + "-"
-        + currentdate.getDate() + " "
-        + currentdate.getHours() + ":"
-        + currentdate.getMinutes() + ":"
-        + currentdate.getSeconds();
+
+}
+
+function favList() {
+
+    $(document).ready(function () {
+        $.ajax({
+            url: 'lib.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { action: 'favView' },
+            success: function (data) {
 
 
-    xhr.send("action=saveFav&postId=" + encodeURIComponent(getPostId()) + "&date=" + encodeURIComponent(datetime));
+                data.forEach(function (item) {
+
+                   
+                        var card = document.createElement("div");
+                        card.className = "card mb-4 topic-card";
+                        card.onclick = function () { launchViewPost(item.id) };
+
+                        var cardBody = document.createElement("div");
+                        cardBody.className = "card-body";
+
+                        var title = document.createElement("h3");
+                        title.className = "card-title";
+                        title.textContent = item.Title;
+
+                        var content = document.createElement("p");
+                        content.className = "card-text";
+                        content.textContent = item.description;
+                        content.textContent = item.description.substring(0, 50) + (item.description.length > 50 ? '...' : '');
+
+                        cardBody.appendChild(title);
+                        cardBody.appendChild(content);
+                        card.appendChild(cardBody);
+                    document.getElementById("topics").appendChild(card);
+                    
+                });
+            },
+            error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    });
+
 }
 
 function isChecked() {
     $.ajax({
         url: 'lib.php',
         type: 'POST',
-        dataType: 'json',
-        data: { action: 'getChecked', postId: getPostId()},
+        dataType: 'text',
+        data: { action: 'getChecked', postId: getPostId() },
         success: function (data) {
-           
+            console.log(data)
+            if (data == "true") {
+                document.getElementById("flexCheckDefault").checked = true;
+            } else {
+                document.getElementById("flexCheckDefault").checked = false;
+            }
         },
         error: function (xhr, status, error) {
             console.error('Error:', error);
         }
     });
 }
+
+
+
 
 function loadFavouriteData() {
    // listFavouritePosts();
@@ -588,6 +657,12 @@ if (document.getElementById("main_page_welcome") != null) {
 
 if (document.getElementById("favourite_welcome") != null) {
     window.onload = loadFavouriteData();
+}
+if (document.getElementById("post_comment") != null) {
+    window.onload = isChecked();
+}
+if (document.getElementById("footer") != null) {
+    window.onload = favList();
 }
 
 
