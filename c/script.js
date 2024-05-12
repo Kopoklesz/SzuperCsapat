@@ -87,6 +87,7 @@ function categories(page) {
 
 function makeCategoriesCP(response) {
     var category = document.getElementById("postCategoryCP");
+
     for (var i = 0; i < response.length; i++) {
         var option = document.createElement("option");
         option.text = response[i].name;
@@ -96,7 +97,12 @@ function makeCategoriesCP(response) {
 
 function makeCategories(response) {
     var category = document.getElementById("postCategory");
-    for (var i = 0; i < response.length; i++) {
+    var option = document.createElement("option");
+    option.text = "Minden";
+
+    category.add(option);
+    var category = document.getElementById("postCategory");
+    for (var i = 1; i < response.length; i++) {
         var option = document.createElement("option");
         option.text = response[i].name;
         category.add(option);
@@ -442,7 +448,13 @@ function listFav() {
 
 function filterByTopicType(topicName) {
     var filterId = 0;
-
+    var topicsSection = document.getElementById("topics");
+    while (topicsSection.firstChild) {
+        topicsSection.removeChild(topicsSection.firstChild);
+    }
+    if (topicName == "Minden") {
+        listPosts();
+    } else {
     /* $(document).ready(function () {
          $.ajax({
              url: 'lib.php',
@@ -484,10 +496,7 @@ function filterByTopicType(topicName) {
             dataType: 'json',
             data: { action: 'postView' },
             success: function (data) {
-                var topicsSection = document.getElementById("topics");
-                while (topicsSection.firstChild) {
-                    topicsSection.removeChild(topicsSection.firstChild);
-                }
+               
 
                 data.forEach(function (item) {
                     console.log("filterid:     "+filterId);
@@ -521,6 +530,46 @@ function filterByTopicType(topicName) {
             }
         });
     });
+    }
+}
+
+function changeFav() {
+  
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "lib.php", true); // POST request
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+           
+            console.log("fav created successfully");
+        }
+    }
+    var currentdate = new Date();
+    var datetime = currentdate.getFullYear() + "-"
+        + (currentdate.getMonth() + 1) + "-"
+        + currentdate.getDate() + " "
+        + currentdate.getHours() + ":"
+        + currentdate.getMinutes() + ":"
+        + currentdate.getSeconds();
+
+
+    xhr.send("action=saveFav&postId=" + encodeURIComponent(getPostId()) + "&date=" + encodeURIComponent(datetime));
+}
+
+function isChecked() {
+    $.ajax({
+        url: 'lib.php',
+        type: 'POST',
+        dataType: 'json',
+        data: { action: 'getChecked', getPostId(): 'postId' },
+        success: function (data) {
+           
+        },
+        error: function (xhr, status, error) {
+            console.error('Error:', error);
+        }
+    });
 }
 
 function loadFavouriteData() {
@@ -540,6 +589,8 @@ if (document.getElementById("main_page_welcome") != null) {
 if (document.getElementById("favourite_welcome") != null) {
     window.onload = loadFavouriteData();
 }
+
+
 
 
 document.getElementById('postCategory').addEventListener('change', function (e) {
