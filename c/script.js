@@ -149,6 +149,7 @@ function listPosts() {
                     var content = document.createElement("p");
                     content.className = "card-text";
                     content.textContent = item.description;
+                    content.textContent = item.description.substring(0, 50) + (item.description.length > 50 ? '...' : '');
 
                     cardBody.appendChild(title);
                     cardBody.appendChild(content);
@@ -278,6 +279,7 @@ function comment() {
         + currentdate.getSeconds();
 
     var postId = getPostId();
+    
 
     var xhr = new XMLHttpRequest();
     xhr.open("POST", "lib.php", true); // POST request
