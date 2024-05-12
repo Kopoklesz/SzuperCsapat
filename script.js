@@ -431,7 +431,7 @@ function listFav() {
                     var content = document.createElement("p");
                     content.className = "card-text";
                     content.textContent = item.description;
-                    content.textContent = item.description.substring(0, 50) + (item.description.length > 50 ? '...' : '');
+                    content.textContent = item.description.substring(0, 100) + (item.description.length > 100 ? '...' : '');
 
                     cardBody.appendChild(title);
                     cardBody.appendChild(content);
@@ -515,7 +515,7 @@ function filterByTopicType(topicName) {
                         var content = document.createElement("p");
                         content.className = "card-text";
                         content.textContent = item.description;
-                        content.textContent = item.description.substring(0, 50) + (item.description.length > 50 ? '...' : '');
+                        content.textContent = item.description.substring(0, 100) + (item.description.length > 100 ? '...' : '');
 
                         cardBody.appendChild(title);
                         cardBody.appendChild(content);
@@ -574,7 +574,8 @@ function changeFav() {
 }
 
 function favList() {
-
+   
+    
     $(document).ready(function () {
         $.ajax({
             url: 'lib.php',
@@ -582,10 +583,13 @@ function favList() {
             dataType: 'json',
             data: { action: 'favView' },
             success: function (data) {
+                var topicsSection = document.getElementById("topics");
+                while (topicsSection.firstChild) {
+                    topicsSection.removeChild(topicsSection.firstChild);
+                }
 
 
                 data.forEach(function (item) {
-
                    
                         var card = document.createElement("div");
                         card.className = "card mb-4 topic-card";
@@ -601,7 +605,7 @@ function favList() {
                         var content = document.createElement("p");
                         content.className = "card-text";
                         content.textContent = item.description;
-                        content.textContent = item.description.substring(0, 50) + (item.description.length > 50 ? '...' : '');
+                        content.textContent = item.description.substring(0, 100) + (item.description.length > 100 ? '...' : '');
 
                         cardBody.appendChild(title);
                         cardBody.appendChild(content);
