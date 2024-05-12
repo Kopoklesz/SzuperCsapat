@@ -137,6 +137,7 @@ function makePost($title, $content, $categoryId){
     if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try{
             $pdo = connect(); 
+
             $creator_id = $_SESSION["user_id"];
            
             $query = "INSERT INTO topics (Creator_id, Title, type_id, description)
@@ -163,8 +164,9 @@ function makeComment($body, $timestamp, $postId){
         try{
             $pdo = connect(); 
             $creator_id = $_SESSION["user_id"];
-           
-            $query = "INSERT INTO comments (Creator_id, topic_id, body, timestamp)
+            
+
+            $query = "INSERT INTO comments (user_id, topic_id, body, timestamp)
             VALUES(?, ?, ?, ?); ";
             $stmt = $pdo->prepare($query);
             $stmt->execute([$creator_id, $postId, $body, $timestamp]);
