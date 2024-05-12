@@ -131,9 +131,16 @@ if(isset($_POST['action'])) {
     if($action === "postView") {
         echo postView();
     }
-    if($action == "getPost") {
+    if($action === "getPost") {
         echo getPost($_POST["postId"]);
     }
+     if($action === "getCommentedUser") {
+        echo getCommentedUser($_POST["userId"]);
+    }
+    if($action === "listFav") {
+        echo lisFav();
+    }
+
 }
 
 function makePost($title, $content, $categoryId){
@@ -239,7 +246,7 @@ function getComment($postId){
 
     try {
         $pdo = connect();
-        $sql = "SELECT user_id, body, timestamp FROM comments WHERE topic_id = :postId"; 
+        $sql = "SELECT id,user_id, body, timestamp FROM comments WHERE topic_id = :postId"; 
         $stmt = $pdo->prepare($sql);
         $stmt->bindParam(':postId', $postId, PDO::PARAM_INT);
         $stmt->execute();
@@ -259,4 +266,67 @@ function getComment($postId){
     }
 
 }
+
+function getCommentedUser($userId){
+    try{
+        $pdo = connect();
+        $sql = "SELECT username FROM users WHERE id = :user_id"; 
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+       
+        if($data) {
+            header('Content-Type: application/json');
+          
+            echo json_encode($data);
+        } else {
+            // Handle case where user is not found
+            header('Content-Type: application/json');
+            echo json_encode(["error" => "User not found"]);
+        }
+    }catch (PDOException $e) {
+        header('Content-Type: application/json');
+        echo json_encode(["error" => "Query Failed"]);
+    }
+}
+
+function lisFav() {
+    try {
+        $pdo = connect();
+        $userId = $_SESSION["user_id"];
+        $sql = "SELECT topic_id FROM comments WHERE user_id = :user_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $data = array();
+        while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $data[] = $row['topic_id']; // Fetch topic_id from the row
+        }
+
+        $finalArray = array();
+        foreach ($data as $topicId) {
+            $sqli = "SELECT id, Title, description FROM topics WHERE id = :postId";
+            $stmt2 = $pdo->prepare($sqli);
+            $stmt2->bindParam(':postId', $topicId, PDO::PARAM_INT); // Bind topic_id
+            $stmt2->execute();
+
+            $result2 = $stmt2->fetch(PDO::FETCH_ASSOC); // Fetch topic details
+            if ($result2) {
+                $finalArray[] = $result2;
+            }
+        }
+
+        header('Content-Type: application/json'); 
+        echo json_encode($finalArray); 
+
+    } catch (PDOException $e) {
+        header('Content-Type: application/json'); 
+        echo json_encode(["error" => "Query Failed"]); 
+    }
+}
+
+
 ?>
