@@ -142,6 +142,9 @@ if(isset($_POST['action'])) {
     if($action === "getTopicId"){
         echo getTopicId($_POST["topicName"]);
     }
+    if($action === "saveFav"){
+        echo saveFav($_POST["postId"], $_POST["date"]);
+    }
 
 }
 
@@ -357,5 +360,32 @@ function getTopicId($topicName){
         echo json_encode(["error" => "Query Failed"]);
     }
 }
+function saveFav($postId, $date){
 
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+        try{
+            $pdo = connect(); 
+
+            $userId = $_SESSION["user_id"];
+           
+            $query = "INSERT INTO favorite_topics (user_id, topic_id, last_checked)
+            VALUES(?, ?, ?); ";
+            $stmt = $pdo->prepare($query);
+            $stmt->execute([$userId, $postId, $date]);
+
+            header("Location: mainpage.html");
+            exit();
+
+        } catch (PDOException $e) {
+            error_log("Query failed: " . $e->getMessage());
+            die("An error occurred. Please try again later.");
+        }
+
+    } else {
+        header("Location: /signin.php");
+        exit();
+    }
+
+
+}
 ?>
