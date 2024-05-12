@@ -170,52 +170,69 @@ function launchViewPost(postId) {
 }
 //View post and comment 
 
-async function loadComment() {
+function loadComment() {
+    var postId = getPostId();
 
-    let commentList = document.getElementById("commentList");
+    $(document).ready(function () {
+        $.ajax({
+            url: 'lib.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { action: 'getComment', postId: postId },
+            success: function (data) {
+                if (Array.isArray(data)) {
 
-    commentList.innerHTML = "";
+                    var commentList = document.getElementById("commentList");
 
-    for (var comment of comments) {
-        //for (var i = 1; i < 8; i++) {
-        let div = document.createElement("div");
-        div.setAttribute("class", "card-body p-4");
+                    while (commentList.firstChild) {
+                        commentList.removeChild(commentList.firstChild);
+                    }
 
-        let div2 = document.createElement("div");
-        div2.setAttribute("class", "d-flex flex-start");
+                    data.forEach(function (item) {
+                        let div = document.createElement("div");
+                        div.setAttribute("class", "card-body p-4");
 
-        let div3 = document.createElement("div");
+                        let div2 = document.createElement("div");
+                        div2.setAttribute("class", "d-flex flex-start");
 
-        let h6 = document.createElement("h6");
-        h6.setAttribute("class", "fw-bold mb-1");
-        h6.innerHTML = comment.user_id;
+                        let div3 = document.createElement("div");
 
-        let div4 = document.createElement("div");
-        div4.setAttribute("class", "d-flex align-items-center mb-3");
+                        let h6 = document.createElement("h6");
+                        h6.setAttribute("class", "fw-bold mb-1");
+                        h6.innerHTML = item.user_id;  // Changed from comment.user_id to item.user_id
 
-        let p = document.createElement("p");
-        p.setAttribute("class", "mb-0");
-        p.innerHTML = comment.timestamp;
+                        let div4 = document.createElement("div");
+                        div4.setAttribute("class", "d-flex align-items-center mb-3");
 
-        let p2 = document.createElement("p");
-        p2.setAttribute("class", "mb-0");
-        p2.innerHTML = comment.body;
+                        let p = document.createElement("p");
+                        p.setAttribute("class", "mb-0");
+                        p.innerHTML = item.timestamp;  // Changed from comment.timestamp to item.timestamp
 
-        div.appendChild(div2);
-        div2.appendChild(div3);
-        div3.appendChild(h6);
-        div3.appendChild(div4);
-        div4.appendChild(p);
-        div3.appendChild(p2);
+                        let p2 = document.createElement("p");
+                        p2.setAttribute("class", "mb-0");
+                        p2.innerHTML = item.body;  // Changed from comment.body to item.body
 
-        let hr = document.createElement("hr");
-        hr.setAttribute("class", "my-0");
+                        div.appendChild(div2);
+                        div2.appendChild(div3);
+                        div3.appendChild(h6);
+                        div3.appendChild(div4);
+                        div4.appendChild(p);
+                        div3.appendChild(p2);
 
-        commentList.appendChild(hr);
-        commentList.appendChild(div);
-    }
+                        let hr = document.createElement("hr");
+                        hr.setAttribute("class", "my-0");
 
-
+                        commentList.appendChild(hr);
+                        commentList.appendChild(div);
+                    });
+                }else{
+                    console.log("No comment found with given id.")
+                }
+            },error: function (xhr, status, error) {
+                console.error('Error:', error);
+            }
+        });
+    });  
 }
 
 
@@ -291,12 +308,13 @@ function comment() {
         }
     }
     xhr.send("action=makeComment&body=" + encodeURIComponent(commentBody) + "&timestamp=" + encodeURIComponent(datetime) + "&postId=" + encodeURIComponent(postId));
+    loadComment();
 }
 
 
 function loadData() {
     loadPost();
-    //loadComment();
+    loadComment();
 
     console.log("Page is fully loaded");
 }
