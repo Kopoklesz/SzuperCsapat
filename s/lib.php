@@ -145,7 +145,15 @@ if(isset($_POST['action'])) {
     if($action === "saveFav"){
         echo saveFav($_POST["postId"], $_POST["date"]);
     }
-
+    if($action === "getChecked"){
+        echo getChecked($_POST["postId"]);
+    }
+    if($action === "deleteFav"){
+        echo deleteFav($_POST["postId"]);
+    }
+    if($action === "favView"){
+        echo favView();
+    }
 }
 
 function makePost($title, $content, $categoryId){
@@ -386,6 +394,89 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit();
     }
 
+}
+
+function getChecked($postId){
+
+  try {
+        $pdo = connect();
+        $userId = $_SESSION["user_id"];
+        $sql = "SELECT last_checked FROM favorite_topics WHERE user_id = :user_id AND topic_id = :post_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindParam(':post_id', $postId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if($data){
+            echo "true";
+        } else {
+            echo "false";
+        }   
+
+    } catch(PDOException $e) {
+        echo "Error: " . $e->getMessage();
+    }
+}
+
+
+
+    function deleteFav($postId){
+
+  try {
+        $pdo = connect();
+        $userId = $_SESSION["user_id"];
+        $sql = "DELETE FROM `favorite_topics` WHERE user_id = :user_id AND topic_id = :post_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindParam(':post_id', $postId, PDO::PARAM_INT);
+        $stmt->execute();
+
+
+    } catch(PDOException $e) {
+        echo "Error: " . $e->getMessage();
+    }
+
+
 
 }
+
+function favView(){
+     try {
+        $pdo = connect();
+        $userId = $_SESSION["user_id"];
+        $sql = "SELECT topic_id FROM favorite_topics WHERE user_id = :user_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $data = array();
+        while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $data[] = $row['topic_id']; // Fetch topic_id from the row
+        }
+
+        $finalArray = array();
+        foreach ($data as $topicId) {
+            $sqli = "SELECT id, Title, description FROM topics WHERE id = :postId";
+            $stmt2 = $pdo->prepare($sqli);
+            $stmt2->bindParam(':postId', $topicId, PDO::PARAM_INT); // Bind topic_id
+            $stmt2->execute();
+
+            $result2 = $stmt2->fetch(PDO::FETCH_ASSOC); // Fetch topic details
+            if ($result2) {
+                $finalArray[] = $result2;
+            }
+        }
+
+        header('Content-Type: application/json'); 
+        echo json_encode($finalArray); 
+
+    } catch (PDOException $e) {
+        header('Content-Type: application/json'); 
+        echo json_encode(["error" => "Query Failed"]); 
+    }
+    
+}
+
 ?>
