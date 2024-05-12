@@ -562,7 +562,7 @@ function isChecked() {
         url: 'lib.php',
         type: 'POST',
         dataType: 'json',
-        data: { action: 'getChecked', getPostId(): 'postId' },
+        data: { action: 'getChecked', postId: getPostId()},
         success: function (data) {
            
         },
