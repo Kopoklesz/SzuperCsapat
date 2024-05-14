@@ -3,7 +3,7 @@ function login() {
     var password = document.getElementById("loginPassword").value;
 
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "lib.php", true); // POST request
+    xhr.open("POST", "lib.php", true); 
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
@@ -17,7 +17,7 @@ function login() {
             }
         }
     };
-    xhr.send("action=login&username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password)); // Sending POST data
+    xhr.send("action=login&username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password)); 
 }
 
 function reg() {
@@ -26,7 +26,7 @@ function reg() {
     let password = document.getElementById("regPassword").value;
 
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "lib.php", true); // POST request
+    xhr.open("POST", "lib.php", true);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
@@ -38,7 +38,7 @@ function reg() {
             }
         }
     };
-    xhr.send("action=reg&name=" + encodeURIComponent(name) + "&username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password)); // Sending POST data
+    xhr.send("action=reg&name=" + encodeURIComponent(name) + "&username=" + encodeURIComponent(username) + "&password=" + encodeURIComponent(password)); 
 }
 
 function loginPage() {
@@ -62,7 +62,7 @@ function showToast() {
 
 function categories(page) {
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "lib.php", true); // POST request
+    xhr.open("POST", "lib.php", true); 
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     if (page == "mainpage" || page == "create_post") {
         xhr.send("action=categoryName");
@@ -116,7 +116,7 @@ function makePost() {
     var categoryId = getCategoryId(category);
 
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "lib.php", true); // POST request
+    xhr.open("POST", "lib.php", true);
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
@@ -180,6 +180,7 @@ function listPosts() {
 }
 
 function launchViewPost(postId) {
+   
     console.log("It works!")
     location.href = "view_post.html?postId=" + postId;
 }
@@ -236,11 +237,11 @@ function loadComment() {
 
                         let p = document.createElement("p");
                         p.setAttribute("class", "mb-0");
-                        p.innerHTML = item.timestamp;  // Changed from comment.timestamp to item.timestamp
+                        p.innerHTML = item.timestamp; 
 
                         let p2 = document.createElement("p");
                         p2.setAttribute("class", "mb-0");
-                        p2.innerHTML = item.body;  // Changed from comment.body to item.body
+                        p2.innerHTML = item.body; 
 
                         div.appendChild(div2);
                         div2.appendChild(div3);
@@ -329,7 +330,7 @@ function comment() {
 
 
     var xhr = new XMLHttpRequest();
-    xhr.open("POST", "lib.php", true); // POST request
+    xhr.open("POST", "lib.php", true); 
     xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
     xhr.onreadystatechange = function () {
         if (xhr.readyState === 4 && xhr.status === 200) {
@@ -479,7 +480,7 @@ function filterByTopicType(topicName) {
         success: function (data) {
             if (data.hasOwnProperty('topic_type')) {
                 filterId = data.topic_type;
-                // Now proceed with the rest of your logic
+              
             } else {
                 console.error('Error: Unexpected response format');
             }
@@ -537,7 +538,7 @@ function changeFav() {
     if (document.getElementById("flexCheckDefault").checked == true) {
         console.log("Most rakja bele")
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", "lib.php", true); // POST request
+        xhr.open("POST", "lib.php", true);
         xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         xhr.onreadystatechange = function () {
             if (xhr.readyState === 4 && xhr.status === 200) {
@@ -558,7 +559,7 @@ function changeFav() {
     } else {
         console.log("Most veszi ki")
             var xhr = new XMLHttpRequest();
-            xhr.open("POST", "lib.php", true); // POST request
+            xhr.open("POST", "lib.php", true);
             xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
             xhr.onreadystatechange = function () {
                 if (xhr.readyState === 4 && xhr.status === 200) {
@@ -575,7 +576,6 @@ function changeFav() {
 
 function favList() {
    
-    
     $(document).ready(function () {
         $.ajax({
             url: 'lib.php',
@@ -588,38 +588,55 @@ function favList() {
                     topicsSection.removeChild(topicsSection.firstChild);
                 }
 
-
                 data.forEach(function (item) {
+                    var card = document.createElement("div");
+                    card.className = "card mb-4 topic-card";
+                    card.onclick = function () { updateLastChecked(item.id) };
+
+                    var cardBody = document.createElement("div");
+                    cardBody.className = "card-body";
+
+                    var title = document.createElement("h3");
+                    title.className = "card-title";
+                    title.textContent = item.Title;
+
+                    var content = document.createElement("p");
+                    content.className = "card-text";
+                    content.textContent = item.description.substring(0, 100) + (item.description.length > 100 ? '...' : '');
+
+                    cardBody.appendChild(title);
+                    cardBody.appendChild(content);
+                    card.appendChild(cardBody);
+                    topicsSection.appendChild(card);
+
                    
-                        var card = document.createElement("div");
-                        card.className = "card mb-4 topic-card";
-                        card.onclick = function () { launchViewPost(item.id) };
-
-                        var cardBody = document.createElement("div");
-                        cardBody.className = "card-body";
-
-                        var title = document.createElement("h3");
-                        title.className = "card-title";
-                        title.textContent = item.Title;
-
-                        var content = document.createElement("p");
-                        content.className = "card-text";
-                        content.textContent = item.description;
-                        content.textContent = item.description.substring(0, 100) + (item.description.length > 100 ? '...' : '');
-
-                        cardBody.appendChild(title);
-                        cardBody.appendChild(content);
-                        card.appendChild(cardBody);
-                    document.getElementById("topics").appendChild(card);
-                    
+                    lastCheckedCheker(item.id, card);
                 });
             },
             error: function (xhr, status, error) {
+                
                 console.error('Error:', error);
             }
         });
     });
+}
 
+function lastCheckedCheker(postId, card) {
+    $.ajax({
+        url: 'lib.php',
+        type: 'POST',
+        dataType: 'text',
+        data: { action: 'lastCheckedCheker', postId: postId },
+        success: function (data) {
+           
+            if (data == "true") {
+                card.className = "card mb-4 topic-card2";
+            }
+        },
+        error: function (xhr, status, error) {
+            console.error('Error:', error);
+        }
+    });
 }
 
 function isChecked() {
@@ -642,6 +659,32 @@ function isChecked() {
     });
 }
 
+
+function updateLastChecked(postId) {
+   location.href = "view_post.html?postId=" + postId;
+
+    var currentdate = new Date();
+    var datetime = currentdate.getFullYear() + "-"
+    + (currentdate.getMonth() + 1) + "-"
+    + currentdate.getDate() + " "
+    + currentdate.getHours() + ":"
+    + currentdate.getMinutes() + ":"
+    + currentdate.getSeconds();
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "lib.php", true); 
+    xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+
+            
+        }
+    }
+
+    xhr.send("action=updateLastChecked&postId=" + encodeURIComponent(postId) + "&timestamp=" + encodeURIComponent(datetime));
+
+    
+}
 
 
 
