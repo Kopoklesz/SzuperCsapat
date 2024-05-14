@@ -1,6 +1,6 @@
 <?php
 
-//connect
+
 function connect(){
     session_start();
     $dsn = "mysql:host=localhost;dbname=blog";
@@ -10,13 +10,13 @@ function connect(){
     try {
         $pdo = new PDO($dsn, $dbusername, $dbpassword);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-        return $pdo; // Return the connection
+        return $pdo; 
     } catch(PDOException $e) {
         return "Connection failed";
     }
 }
 
-//Login
+
 function login($username, $password){
     if($_SERVER["REQUEST_METHOD"] == "POST"){
         $pdo = connect(); 
@@ -46,7 +46,7 @@ function login($username, $password){
     }
 }
 
-//register
+
 function register(){
     if($_SERVER["REQUEST_METHOD"] == "POST"){
         $username = $_POST["username"];
@@ -153,6 +153,12 @@ if(isset($_POST['action'])) {
     }
     if($action === "favView"){
         echo favView();
+    }
+   if($action === "updateLastChecked"){
+        echo updateLastChecked($_POST["postId"], $_POST["timestamp"]);
+    }
+    if($action === "lastCheckedCheker"){
+        echo lastCheckedCheker($_POST["postId"]);
     }
 }
 
@@ -295,7 +301,7 @@ function getCommentedUser($userId){
           
             echo json_encode($data);
         } else {
-            // Handle case where user is not found
+            
             header('Content-Type: application/json');
             echo json_encode(["error" => "User not found"]);
         }
@@ -316,17 +322,17 @@ function lisFav() {
 
         $data = array();
         while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $data[] = $row['topic_id']; // Fetch topic_id from the row
+            $data[] = $row['topic_id']; 
         }
 
         $finalArray = array();
         foreach ($data as $topicId) {
             $sqli = "SELECT id, Title, description FROM topics WHERE id = :postId";
             $stmt2 = $pdo->prepare($sqli);
-            $stmt2->bindParam(':postId', $topicId, PDO::PARAM_INT); // Bind topic_id
+            $stmt2->bindParam(':postId', $topicId, PDO::PARAM_INT); 
             $stmt2->execute();
 
-            $result2 = $stmt2->fetch(PDO::FETCH_ASSOC); // Fetch topic details
+            $result2 = $stmt2->fetch(PDO::FETCH_ASSOC); 
             if ($result2) {
                 $finalArray[] = $result2;
             }
@@ -453,17 +459,17 @@ function favView(){
 
         $data = array();
         while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $data[] = $row['topic_id']; // Fetch topic_id from the row
+            $data[] = $row['topic_id'];
         }
 
         $finalArray = array();
         foreach ($data as $topicId) {
             $sqli = "SELECT id, Title, description FROM topics WHERE id = :postId";
             $stmt2 = $pdo->prepare($sqli);
-            $stmt2->bindParam(':postId', $topicId, PDO::PARAM_INT); // Bind topic_id
+            $stmt2->bindParam(':postId', $topicId, PDO::PARAM_INT); 
             $stmt2->execute();
 
-            $result2 = $stmt2->fetch(PDO::FETCH_ASSOC); // Fetch topic details
+            $result2 = $stmt2->fetch(PDO::FETCH_ASSOC); 
             if ($result2) {
                 $finalArray[] = $result2;
             }
@@ -479,4 +485,74 @@ function favView(){
     
 }
 
+function updateLastChecked($postId, $timestamp){
+
+        
+        try{
+            $pdo = connect(); 
+
+            $userId = $_SESSION["user_id"];
+           
+          $query = "UPDATE `favorite_topics` SET `last_checked`=:date WHERE user_id = :user_id AND topic_id = :post_id";
+          $stmt = $pdo->prepare($query);
+          $stmt->bindParam(':date', $timestamp, PDO::PARAM_STR);
+          $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+          $stmt->bindParam(':post_id', $postId, PDO::PARAM_INT);
+          $stmt->execute();
+
+
+            header("Location: mainpage.html");
+            exit();
+
+        } catch (PDOException $e) {
+            error_log("Query failed: " . $e->getMessage());
+            die("An error occurred. Please try again later.");
+        }    
+}
+
+function lastCheckedCheker($postId){
+       
+         try {
+        $pdo = connect();
+        $userId = $_SESSION["user_id"];
+
+      
+        $sql = "SELECT last_checked FROM favorite_topics WHERE user_id = :user_id AND topic_id = :post_id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->bindParam(':post_id', $postId, PDO::PARAM_INT);
+        $stmt->execute();
+
+        $last_checked_row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+       
+        if (!$last_checked_row) {
+            return "true";
+        }
+
+        $last_checked = $last_checked_row['last_checked'];
+
+      
+        $sql2 = "SELECT timestamp FROM comments WHERE topic_id = :post_id";
+        $stmt2 = $pdo->prepare($sql2);
+        $stmt2->bindParam(':post_id', $postId, PDO::PARAM_INT);
+        $stmt2->execute();
+
+        $comment_times = $stmt2->fetchAll(PDO::FETCH_COLUMN);
+
+        
+        foreach ($comment_times as $comment_time) {
+            if ($comment_time > $last_checked) {
+                return "true";
+            }
+        }
+
+       
+        return "false";
+
+    } catch (PDOException $e) {
+        error_log("Query failed: " . $e->getMessage());
+        die("An error occurred. Please try again later.");
+    }
+}
 ?>
