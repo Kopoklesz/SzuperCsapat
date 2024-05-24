@@ -5,4 +5,4 @@ K8OGHH - Sabján Olivér
 HMF6XL - Kuti Bence
 
 
-Szükség van xampp alkalmazásra, amiben el kell indítani az oldalt.
+Nem tudom hogy működik
